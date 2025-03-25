@@ -1,0 +1,15 @@
+1. Connect 4 is a two-player game where players take
+   turns dropping colored discs into a vertical grid.
+
+2. The objective is to be the first to form a horizontal,
+   vertical, or diagonal line of four of one's own discs.
+
+3. Player 1 uses RED discs and Player 2/AI uses 
+    YELLOW discs.
+
+HOW TO PLAY:
+
+1. Move your mouse to select a column.
+2. Click to drop your disc into that column.
+3. Try to connect four of your discs while preventing 
+your opponent from connecting four.
