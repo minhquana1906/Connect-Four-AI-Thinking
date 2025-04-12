@@ -1,5 +1,4 @@
 import pygame
-import numpy as np
 from config import (
     BLUE,
     BLACK,
@@ -19,27 +18,29 @@ from config import (
     TITLE_FONT,
     MENU_FONT,
     INFO_FONT,
-    MESSAGE_FONT,
     TIMER_FONT,
-    NAME_FONT,
 )
 
 
 def draw_board(board, screen):
-    """Draw the game board on the screen"""
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT):
             pygame.draw.rect(
                 screen,
                 BLUE,
-                (c * SQUARESIZE, r * SQUARESIZE + SQUARESIZE, SQUARESIZE, SQUARESIZE),
+                (
+                    c * SQUARESIZE,
+                    r * SQUARESIZE + SQUARESIZE * 2,
+                    SQUARESIZE,
+                    SQUARESIZE,
+                ),
             )
             pygame.draw.circle(
                 screen,
                 BLACK,
                 (
                     int(c * SQUARESIZE + SQUARESIZE / 2),
-                    int(r * SQUARESIZE + SQUARESIZE + SQUARESIZE / 2),
+                    int(r * SQUARESIZE + SQUARESIZE * 2 + SQUARESIZE / 2),
                 ),
                 RADIUS,
             )
@@ -52,25 +53,24 @@ def draw_board(board, screen):
                     RED,
                     (
                         int(c * SQUARESIZE + SQUARESIZE / 2),
-                        HEIGHT - int(r * SQUARESIZE + SQUARESIZE / 2),
+                        int((ROW_COUNT - r) * SQUARESIZE + SQUARESIZE * 1.5),
                     ),
                     RADIUS,
-                )
+                )  # Adjust y based on new board position
             elif board[r][c] == AI_PIECE:
                 pygame.draw.circle(
                     screen,
                     YELLOW,
                     (
                         int(c * SQUARESIZE + SQUARESIZE / 2),
-                        HEIGHT - int(r * SQUARESIZE + SQUARESIZE / 2),
+                        int((ROW_COUNT - r) * SQUARESIZE + SQUARESIZE * 1.5),
                     ),
                     RADIUS,
-                )
+                )  # Adjust y based on new board position
     pygame.display.update()
 
 
 def display_timer(screen, player_time, current_player):
-    """Display the remaining time for current player"""
     minutes1 = int(player_time[0] // 60)
     seconds1 = int(player_time[0] % 60)
     minutes2 = int(player_time[1] // 60)
@@ -93,15 +93,13 @@ def display_timer(screen, player_time, current_player):
 
 
 def draw_hover_piece(screen, posx, turn):
-    """Draw the piece that follows the mouse cursor"""
     if turn == 0:  # Player 1's turn
-        pygame.draw.circle(screen, RED, (posx, int(SQUARESIZE / 2)), RADIUS)
+        pygame.draw.circle(screen, RED, (posx, int(SQUARESIZE * 1.5)), RADIUS)
     else:  # Player 2's turn
-        pygame.draw.circle(screen, YELLOW, (posx, int(SQUARESIZE / 2)), RADIUS)
+        pygame.draw.circle(screen, YELLOW, (posx, int(SQUARESIZE * 1.5)), RADIUS)
 
 
 def draw_pause_menu(screen):
-    """Draw pause menu with continue, restart and main menu options"""
     # Create a semi-transparent overlay
     overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
     overlay.fill((0, 0, 0, 180))  # Black with 70% opacity
@@ -112,7 +110,7 @@ def draw_pause_menu(screen):
     screen.blit(title, (WIDTH / 2 - title.get_width() / 2, HEIGHT / 4 - 40))
 
     # Create buttons
-    button_width = 300
+    button_width = 400
     button_height = 60
     button_x = WIDTH / 2 - button_width / 2
 
@@ -141,7 +139,7 @@ def draw_pause_menu(screen):
     screen.blit(menu_text, (WIDTH / 2 - menu_text.get_width() / 2, HEIGHT / 2 + 165))
 
     # Hint text
-    hint_text = INFO_FONT.render("Press 'P' again to continue", 1, WHITE)
+    hint_text = INFO_FONT.render("Press 'Esc' again to continue", 1, WHITE)
     screen.blit(hint_text, (WIDTH / 2 - hint_text.get_width() / 2, HEIGHT * 3 / 4 + 50))
 
     pygame.display.update()

@@ -12,7 +12,6 @@ from board import (
 
 
 def evaluate_window(window, piece):
-    """Score a window of 4 positions"""
     score = 0
     opp_piece = PLAYER_PIECE
     if piece == PLAYER_PIECE:
@@ -32,7 +31,6 @@ def evaluate_window(window, piece):
 
 
 def score_position(board, piece):
-    """Score the entire board position"""
     score = 0
 
     # Score center column
@@ -70,7 +68,6 @@ def score_position(board, piece):
 
 
 def minimax(board, depth, alpha, beta, maximizingPlayer):
-    """Minimax algorithm with alpha-beta pruning"""
     valid_locations = get_valid_locations(board)
     is_terminal = is_terminal_node(board, PLAYER_PIECE, AI_PIECE)
     if depth == 0 or is_terminal:
@@ -118,7 +115,6 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
 
 
 def pick_best_move(board, piece):
-    """Pick the best move for the AI using simple scoring"""
     valid_locations = get_valid_locations(board)
     best_score = -10000
     best_col = random.choice(valid_locations)

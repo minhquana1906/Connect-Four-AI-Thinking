@@ -1,13 +1,12 @@
 import pygame
 import sys
-from config import WIDTH, HEIGHT, SIZE
+from config import SIZE
 from ui.menu import draw_main_menu, show_about
 from game.pvp import PlayerVsPlayerGame
 from game.pvai import PlayerVsAIGame
 
 
 def main():
-    """Main entry point for the Connect 4 game"""
     pygame.init()
     screen = pygame.display.set_mode(SIZE)
     pygame.display.set_caption("Connect 4")
@@ -51,13 +50,11 @@ def main():
 
 
 def run_pvp_game(screen):
-    """Run the PvP game with restart support"""
     restart = True
     while restart:
         game = PlayerVsPlayerGame(screen)
         result = game.run()
 
-        # Check if we should restart or return to menu
         if result == "restart":
             restart = True
         elif result == "menu":
@@ -67,13 +64,11 @@ def run_pvp_game(screen):
 
 
 def run_pvai_game(screen):
-    """Run the PvAI game with restart support"""
     restart = True
     while restart:
         game = PlayerVsAIGame(screen)
         result = game.run()
 
-        # Check if we should restart or return to menu
         if result == "restart":
             restart = True
         elif result == "menu":

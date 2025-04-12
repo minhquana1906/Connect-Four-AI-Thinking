@@ -6,9 +6,7 @@ from config import (
     BLUE,
     GREEN,
     RED,
-    YELLOW,
     WIDTH,
-    HEIGHT,
     TITLE_FONT,
     MENU_FONT,
     INFO_FONT,
@@ -16,16 +14,15 @@ from config import (
 
 
 def draw_main_menu(screen):
-    """Draw the main menu with all options"""
     screen.fill(BLACK)
     title = TITLE_FONT.render("Connect 4", 1, WHITE)
     screen.blit(title, (WIDTH / 2 - title.get_width() / 2, 50))
 
     # Create buttons
-    pvp_button = pygame.Rect(WIDTH / 2 - 150, 150, 300, 80)
-    pvai_button = pygame.Rect(WIDTH / 2 - 150, 250, 300, 80)
-    about_button = pygame.Rect(WIDTH / 2 - 150, 350, 300, 80)
-    quit_button = pygame.Rect(WIDTH / 2 - 150, 450, 300, 80)
+    pvp_button = pygame.Rect(WIDTH / 2 - 150, 250, 300, 80)
+    pvai_button = pygame.Rect(WIDTH / 2 - 150, 350, 300, 80)
+    about_button = pygame.Rect(WIDTH / 2 - 150, 450, 300, 80)
+    quit_button = pygame.Rect(WIDTH / 2 - 150, 550, 300, 80)
 
     pygame.draw.rect(screen, BLUE, pvp_button)
     pygame.draw.rect(screen, BLUE, pvai_button)
@@ -38,17 +35,16 @@ def draw_main_menu(screen):
     about_text = MENU_FONT.render("About", 1, WHITE)
     quit_text = MENU_FONT.render("Quit", 1, WHITE)
 
-    screen.blit(pvp_text, (WIDTH / 2 - pvp_text.get_width() / 2, 175))
-    screen.blit(pvai_text, (WIDTH / 2 - pvai_text.get_width() / 2, 275))
-    screen.blit(about_text, (WIDTH / 2 - about_text.get_width() / 2, 375))
-    screen.blit(quit_text, (WIDTH / 2 - quit_text.get_width() / 2, 475))
+    screen.blit(pvp_text, (WIDTH / 2 - pvp_text.get_width() / 2, 275))
+    screen.blit(pvai_text, (WIDTH / 2 - pvai_text.get_width() / 2, 375))
+    screen.blit(about_text, (WIDTH / 2 - about_text.get_width() / 2, 475))
+    screen.blit(quit_text, (WIDTH / 2 - quit_text.get_width() / 2, 575))
 
     pygame.display.update()
     return pvp_button, pvai_button, about_button, quit_button
 
 
 def show_about(screen):
-    """Display information about the game"""
     screen.fill(BLACK)
     title = TITLE_FONT.render("About Connect 4", 1, WHITE)
     screen.blit(title, (WIDTH / 2 - title.get_width() / 2, 50))

@@ -4,14 +4,13 @@ from config import BLACK, WHITE, RED, YELLOW, GREEN, WIDTH, INPUT_FONT, INFO_FON
 
 
 def get_player_names(screen):
-    """Get player names from input"""
     screen.fill(BLACK)
     title = INPUT_FONT.render("Enter Player Names", 1, WHITE)
     screen.blit(title, (WIDTH / 2 - title.get_width() / 2, 50))
 
     # Instructions
-    player1_text = INFO_FONT.render("Player 1 (Red):", 1, RED)
-    player2_text = INFO_FONT.render("Player 2 (Yellow):", 1, YELLOW)
+    player1_text = INFO_FONT.render("Player 1:", 1, RED)
+    player2_text = INFO_FONT.render("Player 2:", 1, YELLOW)
 
     screen.blit(player1_text, (WIDTH / 2 - 220, 150))
     screen.blit(player2_text, (WIDTH / 2 - 220, 250))
@@ -121,7 +120,6 @@ def get_player_names(screen):
 
 
 def get_difficulty(screen):
-    """Get difficulty level from the user"""
     difficulties = {
         "Easy": 120,  # 2 minutes per move
         "Medium": 60,  # 1 minute per move

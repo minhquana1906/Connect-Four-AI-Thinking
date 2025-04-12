@@ -1,23 +1,11 @@
 import pygame
 import sys
-import math
-import numpy as np
-from board import (
-    create_board,
-    drop_piece,
-    is_valid_location,
-    get_next_open_row,
-    print_board,
-    winning_move,
-    get_valid_locations,
-)
-from ui.draw import draw_board, display_timer, draw_hover_piece, draw_pause_menu
-from config import BLACK, RED, YELLOW, WHITE, SQUARESIZE, WIDTH, MESSAGE_FONT, NAME_FONT
+from board import create_board, get_valid_locations
+from ui.draw import draw_board, draw_pause_menu
+from config import BLACK, WHITE, SQUARESIZE, WIDTH, MESSAGE_FONT, NAME_FONT
 
 
 class Game:
-    """Base game class with common functionality"""
-
     def __init__(self, screen):
         self.screen = screen
         self.board = create_board()
@@ -40,21 +28,18 @@ class Game:
         self.mouse_pos_x = WIDTH // 2
 
     def handle_quit_event(self, event):
-        """Handle quit event"""
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
     def handle_mouse_motion(self, event):
-        """Track mouse position"""
         if event.type == pygame.MOUSEMOTION:
             self.mouse_pos_x = event.pos[0]
 
     def handle_pause_key(self, event):
-        """Handle pause key (P) press"""
         if (
             event.type == pygame.KEYDOWN
-            and event.key == pygame.K_p
+            and event.key == pygame.K_ESCAPE
             and not self.game_over
         ):
             if not self.paused:
@@ -69,7 +54,6 @@ class Game:
         return None
 
     def handle_pause_menu(self):
-        """Display pause menu and handle option selection"""
         continue_button, restart_button, menu_button = draw_pause_menu(self.screen)
 
         pause_menu_active = True
@@ -80,7 +64,7 @@ class Game:
                     sys.exit()
 
                 # Check for P key to unpause directly
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.paused = False
                     pause_menu_active = False
                     # Redraw the board to clear the pause menu
@@ -113,12 +97,10 @@ class Game:
             pygame.display.update()
 
     def handle_game_over(self):
-        """Wait when game is over"""
         if self.game_over:
             pygame.time.wait(3000)
 
     def check_draw(self):
-        """Check for a draw condition"""
         if not self.game_over and len(get_valid_locations(self.board)) == 0:
             pygame.draw.rect(self.screen, BLACK, (0, 0, WIDTH, SQUARESIZE))
             label = self.message_font.render("It's a draw!", 1, WHITE)
@@ -126,7 +108,6 @@ class Game:
             self.game_over = True
 
     def display_winner(self, winner_name, winner_color):
-        """Display winner message"""
         pygame.draw.rect(self.screen, BLACK, (0, 0, WIDTH, SQUARESIZE))
         label = self.message_font.render(f"{winner_name} wins!!", 1, winner_color)
         self.screen.blit(label, (WIDTH // 2 - label.get_width() // 2, 10))

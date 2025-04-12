@@ -2,20 +2,29 @@ import pygame
 import math
 from game.base import Game
 from board import (
-    create_board,
     drop_piece,
     is_valid_location,
     get_next_open_row,
     print_board,
     winning_move,
 )
-from ui.draw import draw_board, display_timer, draw_hover_piece, draw_pause_menu
+from ui.draw import draw_board
 from ui.input import get_player_names
-from config import BLACK, RED, YELLOW, WHITE, SQUARESIZE, WIDTH, PLAYER_PIECE, AI_PIECE
+from config import (
+    BLACK,
+    RED,
+    YELLOW,
+    WHITE,
+    GRAY,
+    SQUARESIZE,
+    WIDTH,
+    PLAYER_PIECE,
+    AI_PIECE,
+    RADIUS,
+)
 
 
 class PlayerVsPlayerGame(Game):
-    """Player vs Player game mode"""
 
     def __init__(self, screen):
         super().__init__(screen)
@@ -35,7 +44,6 @@ class PlayerVsPlayerGame(Game):
         draw_board(self.board, self.screen)
 
     def run(self):
-        """Main game loop"""
         while not self.game_over:
             current_time = pygame.time.get_ticks()
             pause_action = None
@@ -63,15 +71,41 @@ class PlayerVsPlayerGame(Game):
                 # Handle pause key - both pausing and unpausing
                 if (
                     event.type == pygame.KEYDOWN
-                    and event.key == pygame.K_p
+                    and event.key == pygame.K_ESCAPE
                     and not self.game_over
                 ):
                     pause_action = self.handle_pause_key(event)
 
                 # Only process game inputs if not paused
                 elif not self.paused:
-                    self.handle_mouse_motion(event)
-                    self.handle_player_move(event)
+                    if event.type == pygame.MOUSEMOTION:
+                        pygame.draw.rect(
+                            self.screen, BLACK, (0, 0, WIDTH, SQUARESIZE * 2)
+                        )
+                        posx = event.pos[0]
+                        self.mouse_pos_x = posx
+
+                        # Draw UI directly here instead of calling another function
+                        self.draw_ui_info()
+
+                        # Draw hover piece
+                        player_color = RED if self.turn == 0 else YELLOW
+                        pygame.draw.circle(
+                            self.screen,
+                            player_color,
+                            (posx, int(SQUARESIZE * 1.5)),
+                            RADIUS,
+                        )
+
+                        pygame.display.update()
+
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        pygame.draw.rect(
+                            self.screen, BLACK, (0, 0, WIDTH, SQUARESIZE * 2)
+                        )
+                        self.handle_player_move(event)
+
+                        # UI will be updated in the main update cycle
 
             # Process pause menu actions if any
             if pause_action == "restart":
@@ -89,75 +123,92 @@ class PlayerVsPlayerGame(Game):
 
         return None  # Default return when game ends normally
 
+    def draw_ui_info(self):
+        # Draw player names with active player highlighted
+        if self.turn == 0:
+            p1_color = RED
+            p2_color = GRAY
+            p1_text = self.name_font.render(f"{self.player1_name}", 1, p1_color)
+            p2_text = self.name_font.render(f"{self.player2_name}", 1, p2_color)
+            turn_text = self.name_font.render("'s turn", 1, WHITE)
+            self.screen.blit(turn_text, (WIDTH // 4 + p1_text.get_width() // 2, 10))
+        else:
+            p1_color = GRAY
+            p2_color = YELLOW
+            p1_text = self.name_font.render(f"{self.player1_name}", 1, p1_color)
+            p2_text = self.name_font.render(f"{self.player2_name}", 1, p2_color)
+            turn_text = self.name_font.render("'s turn", 1, WHITE)
+            self.screen.blit(turn_text, (3 * WIDTH // 4 + p2_text.get_width() // 2, 10))
+
+        self.screen.blit(p1_text, (WIDTH // 4 - p1_text.get_width() // 2, 10))
+        self.screen.blit(p2_text, (3 * WIDTH // 4 - p2_text.get_width() // 2, 10))
+
+        # Display timer using SAME font (self.name_font)
+        minutes1 = int(self.player_time[0] // 60)
+        seconds1 = int(self.player_time[0] % 60)
+        minutes2 = int(self.player_time[1] // 60)
+        seconds2 = int(self.player_time[1] % 60)
+
+        time1_text = self.name_font.render(
+            f"{minutes1:02d}:{seconds1:02d}", 1, p1_color
+        )
+        time2_text = self.name_font.render(
+            f"{minutes2:02d}:{seconds2:02d}", 1, p2_color
+        )
+
+        self.screen.blit(time1_text, (WIDTH // 4 - time1_text.get_width() // 2, 40))
+        self.screen.blit(time2_text, (3 * WIDTH // 4 - time2_text.get_width() // 2, 40))
+
     def handle_timeout(self):
-        """Handle player time running out"""
         self.player_time[self.turn] = 0
-        pygame.draw.rect(self.screen, BLACK, (0, 0, WIDTH, SQUARESIZE))
+        pygame.draw.rect(self.screen, BLACK, (0, 0, WIDTH, SQUARESIZE * 2))
         winner = self.player2_name if self.turn == 0 else self.player1_name
         winner_color = YELLOW if self.turn == 0 else RED
         self.display_winner(winner, winner_color)
 
     def handle_player_move(self, event):
-        """Handle player move events"""
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            posx = event.pos[0]
-            col = int(math.floor(posx / SQUARESIZE))
+        # Removed event.type check since it's now done in run() method
+        posx = event.pos[0]
+        col = int(math.floor(posx / SQUARESIZE))
 
-            if is_valid_location(self.board, col):
-                row = get_next_open_row(self.board, col)
+        if is_valid_location(self.board, col):
+            row = get_next_open_row(self.board, col)
 
-                if self.turn == 0:
-                    drop_piece(self.board, row, col, PLAYER_PIECE)
-                    # Reset the time for this player after making a move
-                    self.player_time[self.turn] = self.default_time[self.turn]
-                    if winning_move(self.board, PLAYER_PIECE):
-                        self.display_winner(self.player1_name, RED)
-                else:
-                    drop_piece(self.board, row, col, AI_PIECE)
-                    # Reset the time for this player after making a move
-                    self.player_time[self.turn] = self.default_time[self.turn]
-                    if winning_move(self.board, AI_PIECE):
-                        self.display_winner(self.player2_name, YELLOW)
+            if self.turn == 0:
+                drop_piece(self.board, row, col, PLAYER_PIECE)
+                # Reset the time for this player after making a move
+                self.player_time[self.turn] = self.default_time[self.turn]
+                if winning_move(self.board, PLAYER_PIECE):
+                    self.display_winner(self.player1_name, RED)
+            else:
+                drop_piece(self.board, row, col, AI_PIECE)
+                # Reset the time for this player after making a move
+                self.player_time[self.turn] = self.default_time[self.turn]
+                if winning_move(self.board, AI_PIECE):
+                    self.display_winner(self.player2_name, YELLOW)
 
-                print_board(self.board)
-                draw_board(self.board, self.screen)
+            print_board(self.board)
+            draw_board(self.board, self.screen)
 
-                # Check for draw
-                self.check_draw()
+            # Check for draw
+            self.check_draw()
 
-                # Switch turns if game not over
-                if not self.game_over:
-                    self.turn += 1
-                    self.turn = self.turn % 2
+            # Switch turns if game not over
+            if not self.game_over:
+                self.turn = (self.turn + 1) % 2
 
     def update_ui(self, current_time):
-        """Update game UI elements"""
         # Clear top area
-        pygame.draw.rect(self.screen, BLACK, (0, 0, WIDTH, SQUARESIZE))
+        pygame.draw.rect(self.screen, BLACK, (0, 0, WIDTH, SQUARESIZE * 2))
 
-        # Display player names with active player highlighted
-        if self.turn == 0:
-            p1_text = self.name_font.render(f"{self.player1_name}", 1, RED)
-            p2_text = self.name_font.render(f"{self.player2_name}", 1, (128, 128, 128))
-        else:
-            p1_text = self.name_font.render(f"{self.player1_name}", 1, (128, 128, 128))
-            p2_text = self.name_font.render(f"{self.player2_name}", 1, YELLOW)
-
-        self.screen.blit(p1_text, (WIDTH // 4 - p1_text.get_width() // 2, 10))
-        self.screen.blit(p2_text, (3 * WIDTH // 4 - p2_text.get_width() // 2, 10))
-
-        # Display timer
-        display_timer(self.screen, self.player_time, self.turn)
-
-        # Display turn indicator
-        turn_text = self.name_font.render("'s turn", 1, WHITE)
-        if self.turn == 0:
-            self.screen.blit(turn_text, (WIDTH // 4 + p1_text.get_width() // 2, 10))
-        else:
-            self.screen.blit(turn_text, (3 * WIDTH // 4 + p2_text.get_width() // 2, 10))
+        # Draw player names, turn indicator and timers
+        self.draw_ui_info()
 
         # Draw hover piece
-        draw_hover_piece(self.screen, self.mouse_pos_x, self.turn)
+        player_color = RED if self.turn == 0 else YELLOW
+        pygame.draw.circle(
+            self.screen, player_color, (self.mouse_pos_x, int(SQUARESIZE * 1.5)), RADIUS
+        )
 
         pygame.display.update()
         self.last_frame_time = current_time

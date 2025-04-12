@@ -1,12 +1,12 @@
 import pygame
 
 # Colors
-BLUE = (0, 0, 255)
+BLUE = (44, 77, 125, 1)
 BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-YELLOW = (255, 255, 0)
+RED = (254, 97, 91, 1)
+YELLOW = (254, 250, 161, 1)
 WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
+GREEN = (5, 64, 43, 1)
 GRAY = (128, 128, 128)
 
 # Game constants
@@ -25,7 +25,7 @@ WINDOW_LENGTH = 4
 
 # Calculate window dimensions
 WIDTH = COLUMN_COUNT * SQUARESIZE
-HEIGHT = (ROW_COUNT + 1) * SQUARESIZE
+HEIGHT = (ROW_COUNT + 2) * SQUARESIZE
 SIZE = (WIDTH, HEIGHT)
 
 # Initialize pygame fonts
