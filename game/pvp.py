@@ -9,7 +9,7 @@ from board import (
     print_board,
     winning_move,
 )
-from ui.draw import draw_board, display_timer, draw_hover_piece
+from ui.draw import draw_board, display_timer, draw_hover_piece, draw_pause_menu
 from ui.input import get_player_names
 from config import BLACK, RED, YELLOW, WHITE, SQUARESIZE, WIDTH, PLAYER_PIECE, AI_PIECE
 
@@ -24,6 +24,7 @@ class PlayerVsPlayerGame(Game):
 
         # Set time limit for PvP mode (120 seconds per player)
         self.time_limit = 120
+        self.default_time = [self.time_limit, self.time_limit]
         self.player_time = [self.time_limit, self.time_limit]
         self.last_time = pygame.time.get_ticks()
 
@@ -37,29 +38,56 @@ class PlayerVsPlayerGame(Game):
         """Main game loop"""
         while not self.game_over:
             current_time = pygame.time.get_ticks()
-            delta_time = (current_time - self.last_time) / 1000.0  # Convert to seconds
+            pause_action = None
 
-            # Update timer
-            if not self.game_over:
-                self.player_time[self.turn] -= delta_time
+            # Only update time if game is not paused
+            if not self.paused:
+                delta_time = (
+                    current_time - self.last_time
+                ) / 1000.0  # Convert to seconds
 
-                # Check for time out
-                if self.player_time[self.turn] <= 0:
-                    self.handle_timeout()
+                # Update timer
+                if not self.game_over:
+                    self.player_time[self.turn] -= delta_time
+
+                    # Check for time out
+                    if self.player_time[self.turn] <= 0:
+                        self.handle_timeout()
 
             self.last_time = current_time
 
             # Handle events
             for event in pygame.event.get():
                 self.handle_quit_event(event)
-                self.handle_mouse_motion(event)
-                self.handle_player_move(event)
+
+                # Handle pause key - both pausing and unpausing
+                if (
+                    event.type == pygame.KEYDOWN
+                    and event.key == pygame.K_p
+                    and not self.game_over
+                ):
+                    pause_action = self.handle_pause_key(event)
+
+                # Only process game inputs if not paused
+                elif not self.paused:
+                    self.handle_mouse_motion(event)
+                    self.handle_player_move(event)
+
+            # Process pause menu actions if any
+            if pause_action == "restart":
+                return "restart"
+            elif pause_action == "menu":
+                return "menu"
 
             # Update UI at controlled frame rate
             if current_time - self.last_frame_time > 1000 / self.frame_rate:
-                self.update_ui(current_time)
+                if not self.paused:  # Only update game UI if not paused
+                    self.update_ui(current_time)
+                self.last_frame_time = current_time
 
             self.handle_game_over()
+
+        return None  # Default return when game ends normally
 
     def handle_timeout(self):
         """Handle player time running out"""
@@ -80,10 +108,14 @@ class PlayerVsPlayerGame(Game):
 
                 if self.turn == 0:
                     drop_piece(self.board, row, col, PLAYER_PIECE)
+                    # Reset the time for this player after making a move
+                    self.player_time[self.turn] = self.default_time[self.turn]
                     if winning_move(self.board, PLAYER_PIECE):
                         self.display_winner(self.player1_name, RED)
                 else:
                     drop_piece(self.board, row, col, AI_PIECE)
+                    # Reset the time for this player after making a move
+                    self.player_time[self.turn] = self.default_time[self.turn]
                     if winning_move(self.board, AI_PIECE):
                         self.display_winner(self.player2_name, YELLOW)
 

@@ -10,7 +10,7 @@ from board import (
     winning_move,
 )
 from ai import minimax
-from ui.draw import draw_board, display_timer, draw_hover_piece
+from ui.draw import draw_board, display_timer, draw_hover_piece, draw_pause_menu
 from ui.input import get_difficulty
 from config import (
     BLACK,
@@ -35,6 +35,7 @@ class PlayerVsAIGame(Game):
         self.time_limit = get_difficulty(screen)
 
         # Player has time limit, AI has unlimited time
+        self.default_time = [self.time_limit, float("inf")]
         self.player_time = [self.time_limit, float("inf")]
         self.last_time = pygame.time.get_ticks()
 
@@ -54,34 +55,60 @@ class PlayerVsAIGame(Game):
         """Main game loop"""
         while not self.game_over:
             current_time = pygame.time.get_ticks()
-            delta_time = (current_time - self.last_time) / 1000.0  # Convert to seconds
+            pause_action = None
 
-            # Update timer only for human player and when it's their turn
-            if self.turn == PLAYER and not self.game_over:
-                self.player_time[PLAYER] -= delta_time
+            # Only update time if game is not paused
+            if not self.paused:
+                delta_time = (
+                    current_time - self.last_time
+                ) / 1000.0  # Convert to seconds
 
-                # Check for time out
-                if self.player_time[PLAYER] <= 0:
-                    self.handle_timeout()
+                # Update timer only for human player and when it's their turn
+                if self.turn == PLAYER and not self.game_over:
+                    self.player_time[PLAYER] -= delta_time
+
+                    # Check for time out
+                    if self.player_time[PLAYER] <= 0:
+                        self.handle_timeout()
 
             self.last_time = current_time
 
             # Handle events
             for event in pygame.event.get():
                 self.handle_quit_event(event)
-                if self.turn == PLAYER:  # Only process these events for player
+
+                # Handle pause key - both pausing and unpausing
+                if (
+                    event.type == pygame.KEYDOWN
+                    and event.key == pygame.K_p
+                    and not self.game_over
+                ):
+                    pause_action = self.handle_pause_key(event)
+
+                # Only process player inputs if not paused and it's player's turn
+                elif not self.paused and self.turn == PLAYER:
                     self.handle_mouse_motion(event)
                     self.handle_player_move(event)
 
-            # AI's turn
-            if self.turn == AI and not self.game_over:
+            # Process pause menu actions if any
+            if pause_action == "restart":
+                return "restart"
+            elif pause_action == "menu":
+                return "menu"
+
+            # AI's turn - only process if not paused
+            if self.turn == AI and not self.game_over and not self.paused:
                 self.handle_ai_move()
 
             # Update UI at controlled frame rate
             if current_time - self.last_frame_time > 1000 / self.frame_rate:
-                self.update_ui(current_time)
+                if not self.paused:  # Only update game UI if not paused
+                    self.update_ui(current_time)
+                self.last_frame_time = current_time
 
             self.handle_game_over()
+
+        return None  # Default return when game ends normally
 
     def handle_timeout(self):
         """Handle player time running out"""
@@ -100,6 +127,8 @@ class PlayerVsAIGame(Game):
             if is_valid_location(self.board, col):
                 row = get_next_open_row(self.board, col)
                 drop_piece(self.board, row, col, PLAYER_PIECE)
+                # Reset timer for player after making a move
+                self.player_time[PLAYER] = self.default_time[PLAYER]
 
                 if winning_move(self.board, PLAYER_PIECE):
                     self.display_winner(self.player_name, RED)

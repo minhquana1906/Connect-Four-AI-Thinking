@@ -98,3 +98,52 @@ def draw_hover_piece(screen, posx, turn):
         pygame.draw.circle(screen, RED, (posx, int(SQUARESIZE / 2)), RADIUS)
     else:  # Player 2's turn
         pygame.draw.circle(screen, YELLOW, (posx, int(SQUARESIZE / 2)), RADIUS)
+
+
+def draw_pause_menu(screen):
+    """Draw pause menu with continue, restart and main menu options"""
+    # Create a semi-transparent overlay
+    overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 180))  # Black with 70% opacity
+    screen.blit(overlay, (0, 0))
+
+    # Title
+    title = TITLE_FONT.render("GAME PAUSED", 1, WHITE)
+    screen.blit(title, (WIDTH / 2 - title.get_width() / 2, HEIGHT / 4 - 40))
+
+    # Create buttons
+    button_width = 300
+    button_height = 60
+    button_x = WIDTH / 2 - button_width / 2
+
+    # Continue button
+    continue_button = pygame.Rect(
+        button_x, HEIGHT / 2 - 30, button_width, button_height
+    )
+    pygame.draw.rect(screen, GREEN, continue_button)
+    continue_text = MENU_FONT.render("Continue", 1, WHITE)
+    screen.blit(
+        continue_text, (WIDTH / 2 - continue_text.get_width() / 2, HEIGHT / 2 - 15)
+    )
+
+    # Restart button
+    restart_button = pygame.Rect(button_x, HEIGHT / 2 + 60, button_width, button_height)
+    pygame.draw.rect(screen, BLUE, restart_button)
+    restart_text = MENU_FONT.render("Restart", 1, WHITE)
+    screen.blit(
+        restart_text, (WIDTH / 2 - restart_text.get_width() / 2, HEIGHT / 2 + 75)
+    )
+
+    # Main menu button
+    menu_button = pygame.Rect(button_x, HEIGHT / 2 + 150, button_width, button_height)
+    pygame.draw.rect(screen, RED, menu_button)
+    menu_text = MENU_FONT.render("Return to Main Menu", 1, WHITE)
+    screen.blit(menu_text, (WIDTH / 2 - menu_text.get_width() / 2, HEIGHT / 2 + 165))
+
+    # Hint text
+    hint_text = INFO_FONT.render("Press 'P' again to continue", 1, WHITE)
+    screen.blit(hint_text, (WIDTH / 2 - hint_text.get_width() / 2, HEIGHT * 3 / 4 + 50))
+
+    pygame.display.update()
+
+    return continue_button, restart_button, menu_button

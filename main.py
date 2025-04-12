@@ -30,14 +30,12 @@ def main():
 
                 # PvP button clicked
                 if pvp_button.collidepoint(mouse_pos):
-                    game = PlayerVsPlayerGame(screen)
-                    game.run()
+                    run_pvp_game(screen)
                     # Return to menu after game ends
 
                 # PvAI button clicked
                 elif pvai_button.collidepoint(mouse_pos):
-                    game = PlayerVsAIGame(screen)
-                    game.run()
+                    run_pvai_game(screen)
                     # Return to menu after game ends
 
                 # About button clicked
@@ -50,6 +48,38 @@ def main():
                     sys.exit()
 
         pygame.display.update()
+
+
+def run_pvp_game(screen):
+    """Run the PvP game with restart support"""
+    restart = True
+    while restart:
+        game = PlayerVsPlayerGame(screen)
+        result = game.run()
+
+        # Check if we should restart or return to menu
+        if result == "restart":
+            restart = True
+        elif result == "menu":
+            return
+        else:
+            restart = False
+
+
+def run_pvai_game(screen):
+    """Run the PvAI game with restart support"""
+    restart = True
+    while restart:
+        game = PlayerVsAIGame(screen)
+        result = game.run()
+
+        # Check if we should restart or return to menu
+        if result == "restart":
+            restart = True
+        elif result == "menu":
+            return
+        else:
+            restart = False
 
 
 if __name__ == "__main__":

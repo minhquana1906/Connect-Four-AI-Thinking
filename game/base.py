@@ -11,7 +11,7 @@ from board import (
     winning_move,
     get_valid_locations,
 )
-from ui.draw import draw_board, display_timer, draw_hover_piece
+from ui.draw import draw_board, display_timer, draw_hover_piece, draw_pause_menu
 from config import BLACK, RED, YELLOW, WHITE, SQUARESIZE, WIDTH, MESSAGE_FONT, NAME_FONT
 
 
@@ -22,6 +22,7 @@ class Game:
         self.screen = screen
         self.board = create_board()
         self.game_over = False
+        self.paused = False
         self.message_font = (
             pygame.font.SysFont("monospace", 50)
             if not pygame.font.get_init()
@@ -48,6 +49,68 @@ class Game:
         """Track mouse position"""
         if event.type == pygame.MOUSEMOTION:
             self.mouse_pos_x = event.pos[0]
+
+    def handle_pause_key(self, event):
+        """Handle pause key (P) press"""
+        if (
+            event.type == pygame.KEYDOWN
+            and event.key == pygame.K_p
+            and not self.game_over
+        ):
+            if not self.paused:
+                # Pausing the game
+                self.paused = True
+                return self.handle_pause_menu()
+            else:
+                # Unpausing the game (should redraw the board)
+                self.paused = False
+                draw_board(self.board, self.screen)
+                return "continue"
+        return None
+
+    def handle_pause_menu(self):
+        """Display pause menu and handle option selection"""
+        continue_button, restart_button, menu_button = draw_pause_menu(self.screen)
+
+        pause_menu_active = True
+        while pause_menu_active and not self.game_over:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                # Check for P key to unpause directly
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+                    self.paused = False
+                    pause_menu_active = False
+                    # Redraw the board to clear the pause menu
+                    draw_board(self.board, self.screen)
+                    return "continue"
+
+                # Check for button clicks
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+
+                    # Continue button clicked
+                    if continue_button.collidepoint(mouse_pos):
+                        self.paused = False
+                        pause_menu_active = False
+                        # Redraw the board to clear the pause menu
+                        draw_board(self.board, self.screen)
+                        return "continue"
+
+                    # Restart button clicked
+                    elif restart_button.collidepoint(mouse_pos):
+                        self.paused = False
+                        return "restart"
+
+                    # Main menu button clicked
+                    elif menu_button.collidepoint(mouse_pos):
+                        self.paused = False
+                        self.game_over = True
+                        return "menu"
+
+            pygame.display.update()
 
     def handle_game_over(self):
         """Wait when game is over"""
