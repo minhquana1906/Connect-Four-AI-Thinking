@@ -18,7 +18,6 @@ def draw_main_menu(screen):
     title = TITLE_FONT.render("Connect 4", 1, WHITE)
     screen.blit(title, (WIDTH / 2 - title.get_width() / 2, 50))
 
-    # Create buttons
     pvp_button = pygame.Rect(WIDTH / 2 - 150, 250, 300, 80)
     pvai_button = pygame.Rect(WIDTH / 2 - 150, 350, 300, 80)
     about_button = pygame.Rect(WIDTH / 2 - 150, 450, 300, 80)
@@ -29,7 +28,6 @@ def draw_main_menu(screen):
     pygame.draw.rect(screen, GREEN, about_button)
     pygame.draw.rect(screen, RED, quit_button)
 
-    # Add text to buttons
     pvp_text = MENU_FONT.render("Player vs Player", 1, WHITE)
     pvai_text = MENU_FONT.render("Player vs AI", 1, WHITE)
     about_text = MENU_FONT.render("About", 1, WHITE)
@@ -49,12 +47,10 @@ def show_about(screen):
     title = TITLE_FONT.render("About Connect 4", 1, WHITE)
     screen.blit(title, (WIDTH / 2 - title.get_width() / 2, 50))
 
-    # Read rules from rules.txt file
     try:
         with open("rules.txt", "r", encoding="utf-8") as file:
             info_lines = file.read().splitlines()
     except FileNotFoundError:
-        # Fallback to default text if file isn't found
         info_lines = [
             "Connect 4 is a two-player connection game where players",
             "take turns dropping colored discs into a grid.",
@@ -72,14 +68,12 @@ def show_about(screen):
             "(Could not load rules.txt file)",
         ]
 
-    # Display the rules text
     y_pos = 120
     for line in info_lines:
         text = INFO_FONT.render(line, 1, WHITE)
         screen.blit(text, (WIDTH / 2 - text.get_width() / 2, y_pos))
         y_pos += 30
 
-    # Back button
     back_button = pygame.Rect(WIDTH / 2 - 100, 600, 200, 50)
     pygame.draw.rect(screen, BLUE, back_button)
     back_text = INFO_FONT.render("Back to Menu", 1, WHITE)
@@ -87,7 +81,6 @@ def show_about(screen):
 
     pygame.display.update()
 
-    # Wait for user to go back
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

@@ -1,6 +1,6 @@
 import pygame
 import sys
-from board import create_board, get_valid_locations
+from board import create_board, get_valid_locations, print_board, winning_move
 from ui.draw import draw_board, draw_pause_menu
 from config import BLACK, WHITE, SQUARESIZE, WIDTH, MESSAGE_FONT, NAME_FONT
 
@@ -22,7 +22,6 @@ class Game:
             else NAME_FONT
         )
 
-        # Track frame rate to avoid flickering
         self.last_frame_time = 0
         self.frame_rate = 30
         self.mouse_pos_x = WIDTH // 2
@@ -43,11 +42,9 @@ class Game:
             and not self.game_over
         ):
             if not self.paused:
-                # Pausing the game
                 self.paused = True
                 return self.handle_pause_menu()
             else:
-                # Unpausing the game (should redraw the board)
                 self.paused = False
                 draw_board(self.board, self.screen)
                 return "continue"
@@ -63,32 +60,25 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
-                # Check for P key to unpause directly
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.paused = False
                     pause_menu_active = False
-                    # Redraw the board to clear the pause menu
                     draw_board(self.board, self.screen)
                     return "continue"
 
-                # Check for button clicks
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
 
-                    # Continue button clicked
                     if continue_button.collidepoint(mouse_pos):
                         self.paused = False
                         pause_menu_active = False
-                        # Redraw the board to clear the pause menu
                         draw_board(self.board, self.screen)
                         return "continue"
 
-                    # Restart button clicked
                     elif restart_button.collidepoint(mouse_pos):
                         self.paused = False
                         return "restart"
 
-                    # Main menu button clicked
                     elif menu_button.collidepoint(mouse_pos):
                         self.paused = False
                         self.game_over = True
@@ -105,10 +95,28 @@ class Game:
             pygame.draw.rect(self.screen, BLACK, (0, 0, WIDTH, SQUARESIZE))
             label = self.message_font.render("It's a draw!", 1, WHITE)
             self.screen.blit(label, (WIDTH // 2 - label.get_width() // 2, 10))
+            pygame.display.update()
             self.game_over = True
+            return True
+        return False
 
     def display_winner(self, winner_name, winner_color):
         pygame.draw.rect(self.screen, BLACK, (0, 0, WIDTH, SQUARESIZE))
         label = self.message_font.render(f"{winner_name} wins!!", 1, winner_color)
         self.screen.blit(label, (WIDTH // 2 - label.get_width() // 2, 10))
         self.game_over = True
+        pygame.display.update()
+
+    def handle_move_completion(self, piece_type, player_name, color):
+        """Common logic to execute after a move is made"""
+        print_board(self.board)
+        draw_board(self.board, self.screen)
+
+        if winning_move(self.board, piece_type):
+            self.display_winner(player_name, color)
+            return True
+
+        if self.check_draw():
+            return True
+
+        return False

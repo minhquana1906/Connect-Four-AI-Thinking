@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 from game.base import Game
 from board import (
     drop_piece,
@@ -31,24 +32,17 @@ class PlayerVsAIGame(Game):
 
     def __init__(self, screen):
         super().__init__(screen)
-        # Get difficulty level (time limit)
         self.time_limit = get_difficulty(screen)
 
-        # Player has time limit, AI has unlimited time
         self.default_time = [self.time_limit, float("inf")]
         self.player_time = [self.time_limit, float("inf")]
         self.last_time = pygame.time.get_ticks()
-
-        # Player names
-        self.player_name = "You"
+        self.clock = pygame.time.Clock()
+        self.player_name = "Player"
         self.ai_name = "AI"
-
-        # Random first turn
-        import random
 
         self.turn = random.randint(PLAYER, AI)
 
-        # Initial draw
         draw_board(self.board, self.screen)
 
     def run(self):
@@ -64,7 +58,7 @@ class PlayerVsAIGame(Game):
                     if self.player_time[PLAYER] <= 0:
                         self.handle_timeout()
 
-            self.last_time = current_time
+                self.last_time = current_time
 
             for event in pygame.event.get():
                 self.handle_quit_event(event)
@@ -87,7 +81,6 @@ class PlayerVsAIGame(Game):
                             self.screen, RED, (posx, int(SQUARESIZE * 1.5)), RADIUS
                         )
 
-                        # Redraw player names and timers after clearing top area
                         if self.turn == PLAYER:
                             p1_text = self.name_font.render(
                                 f"{self.player_name}", 1, RED
@@ -104,7 +97,6 @@ class PlayerVsAIGame(Game):
                                 turn_text, (WIDTH // 4 + p1_text.get_width() // 2, 10)
                             )
 
-                            # Draw timer
                             minutes = int(self.player_time[PLAYER] // 60)
                             seconds = int(self.player_time[PLAYER] % 60)
                             time_text = self.name_font.render(
@@ -124,14 +116,8 @@ class PlayerVsAIGame(Game):
                         )
                         self.handle_player_move(event)
 
-                        # Redraw player names and timers immediately after clearing
                         if not self.game_over:
                             self.update_ui(current_time)
-
-            if pause_action == "restart":
-                return "restart"
-            elif pause_action == "menu":
-                return "menu"
 
             if self.turn == AI and not self.game_over and not self.paused:
                 self.handle_ai_move()
@@ -141,7 +127,11 @@ class PlayerVsAIGame(Game):
                     self.update_ui(current_time)
                 self.last_frame_time = current_time
 
-            self.handle_game_over()
+            if self.handle_game_over():
+                return None
+
+            pygame.display.update()
+            self.clock.tick(60)
 
         return None
 
@@ -153,72 +143,49 @@ class PlayerVsAIGame(Game):
         self.game_over = True
 
     def handle_player_move(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            posx = event.pos[0]
-            col = int(math.floor(posx / SQUARESIZE))
+        posx = event.pos[0]
+        col = int(math.floor(posx / SQUARESIZE))
 
-            if is_valid_location(self.board, col):
-                row = get_next_open_row(self.board, col)
-                drop_piece(self.board, row, col, PLAYER_PIECE)
-                # Reset timer for player after making a move
-                self.player_time[PLAYER] = self.default_time[PLAYER]
+        if is_valid_location(self.board, col):
+            row = get_next_open_row(self.board, col)
+            drop_piece(self.board, row, col, PLAYER_PIECE)
+            self.player_time[PLAYER] = self.default_time[PLAYER]
 
-                if winning_move(self.board, PLAYER_PIECE):
-                    self.display_winner(self.player_name, RED)
-                else:
-                    # Check for draw
-                    self.check_draw()
+            game_ended = self.handle_move_completion(
+                PLAYER_PIECE, self.player_name, RED
+            )
 
-                    # Switch turns if game not over
-                    if not self.game_over:
-                        self.turn = AI
-
-                print_board(self.board)
-                draw_board(self.board, self.screen)
+            if not self.game_over and not game_ended:
+                self.turn = AI
 
     def handle_ai_move(self):
-        # AI makes a move using minimax
         col, minimax_score = minimax(self.board, 5, -math.inf, math.inf, True)
 
         if is_valid_location(self.board, col):
-            # Add delay to make AI move visible
             pygame.time.wait(500)
             row = get_next_open_row(self.board, col)
             drop_piece(self.board, row, col, AI_PIECE)
 
-            if winning_move(self.board, AI_PIECE):
-                self.display_winner(self.ai_name, YELLOW)
-            else:
-                # Check for draw
-                self.check_draw()
+            game_ended = self.handle_move_completion(AI_PIECE, self.ai_name, YELLOW)
 
-                # Switch turns if game not over
-                if not self.game_over:
-                    self.turn = PLAYER
-
-            print_board(self.board)
-            draw_board(self.board, self.screen)
+            if not self.game_over and not game_ended:
+                self.turn = PLAYER
 
     def update_ui(self, current_time):
-        # Clear top area
         pygame.draw.rect(self.screen, BLACK, (0, 0, WIDTH, SQUARESIZE * 2))
 
-        # Display player names with active player highlighted
         if self.turn == PLAYER:
             p1_text = self.name_font.render(f"{self.player_name}", 1, RED)
             p2_text = self.name_font.render(f"{self.ai_name}", 1, (128, 128, 128))
 
-            # Display turn indicator for player
             turn_text = self.name_font.render("'s turn", 1, WHITE)
             self.screen.blit(turn_text, (WIDTH // 4 + p1_text.get_width() // 2, 10))
 
-            # Draw hover piece when it's player's turn
             draw_hover_piece(self.screen, self.mouse_pos_x, 0)
         else:
             p1_text = self.name_font.render(f"{self.player_name}", 1, (128, 128, 128))
             p2_text = self.name_font.render(f"{self.ai_name}", 1, YELLOW)
 
-            # Display thinking text for AI
             thinking_text = self.name_font.render(" thinking...", 1, WHITE)
             self.screen.blit(
                 thinking_text, (3 * WIDTH // 4 + p2_text.get_width() // 2, 10)
@@ -227,7 +194,6 @@ class PlayerVsAIGame(Game):
         self.screen.blit(p1_text, (WIDTH // 4 - p1_text.get_width() // 2, 10))
         self.screen.blit(p2_text, (3 * WIDTH // 4 - p2_text.get_width() // 2, 10))
 
-        # Display timer (only for player)
         minutes = int(self.player_time[PLAYER] // 60)
         seconds = int(self.player_time[PLAYER] % 60)
         time_text = self.name_font.render(

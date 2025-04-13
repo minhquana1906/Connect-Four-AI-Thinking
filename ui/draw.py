@@ -5,6 +5,7 @@ from config import (
     RED,
     YELLOW,
     WHITE,
+    ORANGE,
     GREEN,
     GRAY,
     SQUARESIZE,
@@ -19,6 +20,7 @@ from config import (
     MENU_FONT,
     INFO_FONT,
     TIMER_FONT,
+    PAUSE_HINT_FONT,
 )
 
 
@@ -56,7 +58,7 @@ def draw_board(board, screen):
                         int((ROW_COUNT - r) * SQUARESIZE + SQUARESIZE * 1.5),
                     ),
                     RADIUS,
-                )  # Adjust y based on new board position
+                )
             elif board[r][c] == AI_PIECE:
                 pygame.draw.circle(
                     screen,
@@ -66,8 +68,16 @@ def draw_board(board, screen):
                         int((ROW_COUNT - r) * SQUARESIZE + SQUARESIZE * 1.5),
                     ),
                     RADIUS,
-                )  # Adjust y based on new board position
-    pygame.display.update()
+                )
+
+    pause_hint = PAUSE_HINT_FONT.render("Press 'Esc' to pause the game", 1, ORANGE)
+    screen.blit(
+        pause_hint,
+        (
+            WIDTH / 2 - pause_hint.get_width() / 2,
+            HEIGHT - SQUARESIZE / 3 - pause_hint.get_height() / 3,
+        ),
+    )
 
 
 def display_timer(screen, player_time, current_player):
@@ -76,7 +86,6 @@ def display_timer(screen, player_time, current_player):
     minutes2 = int(player_time[1] // 60)
     seconds2 = int(player_time[1] % 60)
 
-    # Display time for both players
     if current_player == 0:
         time1_color = RED
         time2_color = GRAY
@@ -87,34 +96,29 @@ def display_timer(screen, player_time, current_player):
     time1_text = TIMER_FONT.render(f"{minutes1:02d}:{seconds1:02d}", 1, time1_color)
     time2_text = TIMER_FONT.render(f"{minutes2:02d}:{seconds2:02d}", 1, time2_color)
 
-    # Position the timer under player names
     screen.blit(time1_text, (WIDTH // 4 - time1_text.get_width() // 2, 40))
     screen.blit(time2_text, (3 * WIDTH // 4 - time2_text.get_width() // 2, 40))
 
 
 def draw_hover_piece(screen, posx, turn):
-    if turn == 0:  # Player 1's turn
+    if turn == 0:
         pygame.draw.circle(screen, RED, (posx, int(SQUARESIZE * 1.5)), RADIUS)
-    else:  # Player 2's turn
+    else:
         pygame.draw.circle(screen, YELLOW, (posx, int(SQUARESIZE * 1.5)), RADIUS)
 
 
 def draw_pause_menu(screen):
-    # Create a semi-transparent overlay
     overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-    overlay.fill((0, 0, 0, 180))  # Black with 70% opacity
+    overlay.fill((0, 0, 0, 180))
     screen.blit(overlay, (0, 0))
 
-    # Title
     title = TITLE_FONT.render("GAME PAUSED", 1, WHITE)
     screen.blit(title, (WIDTH / 2 - title.get_width() / 2, HEIGHT / 4 - 40))
 
-    # Create buttons
     button_width = 400
     button_height = 60
     button_x = WIDTH / 2 - button_width / 2
 
-    # Continue button
     continue_button = pygame.Rect(
         button_x, HEIGHT / 2 - 30, button_width, button_height
     )
@@ -124,7 +128,6 @@ def draw_pause_menu(screen):
         continue_text, (WIDTH / 2 - continue_text.get_width() / 2, HEIGHT / 2 - 15)
     )
 
-    # Restart button
     restart_button = pygame.Rect(button_x, HEIGHT / 2 + 60, button_width, button_height)
     pygame.draw.rect(screen, BLUE, restart_button)
     restart_text = MENU_FONT.render("Restart", 1, WHITE)
@@ -132,13 +135,11 @@ def draw_pause_menu(screen):
         restart_text, (WIDTH / 2 - restart_text.get_width() / 2, HEIGHT / 2 + 75)
     )
 
-    # Main menu button
     menu_button = pygame.Rect(button_x, HEIGHT / 2 + 150, button_width, button_height)
     pygame.draw.rect(screen, RED, menu_button)
     menu_text = MENU_FONT.render("Return to Main Menu", 1, WHITE)
     screen.blit(menu_text, (WIDTH / 2 - menu_text.get_width() / 2, HEIGHT / 2 + 165))
 
-    # Hint text
     hint_text = INFO_FONT.render("Press 'Esc' again to continue", 1, WHITE)
     screen.blit(hint_text, (WIDTH / 2 - hint_text.get_width() / 2, HEIGHT * 3 / 4 + 50))
 
