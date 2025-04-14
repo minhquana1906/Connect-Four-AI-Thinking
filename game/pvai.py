@@ -69,6 +69,10 @@ class PlayerVsAIGame(Game):
                     and not self.game_over
                 ):
                     pause_action = self.handle_pause_key(event)
+                    if pause_action == "restart":
+                        return "restart"
+                    elif pause_action == "menu":
+                        return "menu"
 
                 elif not self.paused and self.turn == PLAYER:
                     if event.type == pygame.MOUSEMOTION:
@@ -128,6 +132,7 @@ class PlayerVsAIGame(Game):
                 self.last_frame_time = current_time
 
             if self.handle_game_over():
+                pygame.display.update()
                 return None
 
             pygame.display.update()
@@ -141,6 +146,7 @@ class PlayerVsAIGame(Game):
         label = self.message_font.render(f"{self.ai_name} wins on time!!", 1, YELLOW)
         self.screen.blit(label, (WIDTH // 2 - label.get_width() // 2, 10))
         self.game_over = True
+        pygame.display.update()
 
     def handle_player_move(self, event):
         posx = event.pos[0]

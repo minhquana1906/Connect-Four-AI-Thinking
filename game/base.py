@@ -88,7 +88,10 @@ class Game:
 
     def handle_game_over(self):
         if self.game_over:
+            pygame.display.update()
             pygame.time.wait(3000)
+            return True
+        return False
 
     def check_draw(self):
         if not self.game_over and len(get_valid_locations(self.board)) == 0:
@@ -108,9 +111,9 @@ class Game:
         pygame.display.update()
 
     def handle_move_completion(self, piece_type, player_name, color):
-        """Common logic to execute after a move is made"""
         print_board(self.board)
         draw_board(self.board, self.screen)
+        pygame.display.update()
 
         if winning_move(self.board, piece_type):
             self.display_winner(player_name, color)
